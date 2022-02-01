@@ -19,6 +19,7 @@ import App from './App.vue'
 import {
   createStore
 } from 'vuex';
+import Vuex from 'vuex'
 
 const API = 'https://deckofcardsapi.com/api/deck/new/shuffle/';
 
@@ -50,7 +51,7 @@ function validateGuess(card, nextGuess) {
 
 }
 
-const moduleA = createStore({
+const store = createStore({
   state() {
     return {
       guesser: {
@@ -60,8 +61,7 @@ const moduleA = createStore({
         nextGuess: undefined,
         guesses: 0,
       }
-    };
-  },
+  }},
 
   getters: {
     cardAPI(state) {
@@ -134,30 +134,30 @@ const moduleA = createStore({
   },
 });
 
-const moduleB = createStore({
-  // state: {
-  //   gameState: {
-  //     score: 0,
-  //     deckID: undefined,
-  //     cards: [],
-  //     currentValue: undefined
-  //     // nextGuess: undefined,
-  //     // guesses: 0,
-  //   }
-  // }
-  state() {
-    return {
-      gameState: {
-        score: 0,
-        deckID: undefined,
-        cards: [],
-        currentValue: undefined,
-        // guesses: 0,
-      }
-    };
-  },
-  
-});
+// const moduleB = createStore({
+//   // state: {
+//   //   gameState: {
+//   //     score: 0,
+//   //     deckID: undefined,
+//   //     cards: [],
+//   //     currentValue: undefined
+//   //     // nextGuess: undefined,
+//   //     // guesses: 0,
+//   //   }
+//   // }
+//   state() {
+//     return {
+//       gameState: {
+//         score: 0,
+//         deckID: undefined,
+//         cards: [],
+//         currentValue: undefined,
+//         // guesses: 0,
+//       }
+// });
+
+// console.log(store.state.a)
+// store.state.b
 
 const routes = [{
     path: '/',
@@ -192,5 +192,5 @@ const router = createRouter({
 const app = createApp(App);
 app.component()
 app.use(router);
-app.use(moduleA, moduleB);
+app.use(store);
 app.mount('#app');
