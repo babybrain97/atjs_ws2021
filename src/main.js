@@ -7,20 +7,14 @@ import {
 } from 'vue-router'
 import './index.css'
 
-//game logic
-// import Blackjack from './blackjack.js'
-
 import HomePage from './pages/Home.vue'
 import PokedexPage from './pages/Pokedex.vue'
 import CalculatorPage from './pages/Calculator.vue'
 import GuesserPage from './pages/Guesser.vue'
-import BlackJackPage from './pages/Blackjack.vue' 
 import App from './App.vue'
 import {
   createStore
 } from 'vuex';
-import Vuex from 'vuex'
-
 const API = 'https://deckofcardsapi.com/api/deck/new/shuffle/';
 
 function cardSymbol(card) {
@@ -38,126 +32,202 @@ function cardSymbol(card) {
   }
 }
 
-function validateGuess(card, nextGuess) {
-  const colors = {
-    SPADES: 'black',
-    HEARTS: 'red',
-    CLUBS: 'black',
-    DIAMONDS: 'red',
+function showValue(card) {
+  const values = {
+    ACE: 11,
+    KING: 10,
+    QUEEN: 10,
+    JACK: 10,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10
   };
 
-  const cardColor = colors[card.suit];
-  return cardColor == nextGuess;
-
+  const cardValue = values[card.value];
+  console.log(cardValue);
+  return cardValue;
 }
 
 const store = createStore({
-  state() {
-    return {
-      guesser: {
-        points: 0,
-        deckID: undefined,
+  state: {
+      deckID: {
+        id: undefined
+      }, 
+      gameState: {
+        running: false,
+        gameOver: false,
+        gameWon: false,
+        gameDraw: false,
+        gameFinished: false
+      },
+      computer: {
         cards: [],
-        nextGuess: undefined,
-        guesses: 0,
+        score: 0,
+      },
+      player: {
+        cards: [],
+        score: 0,
       }
-  }},
+  },
 
   getters: {
-    cardAPI(state) {
-      return `https://deckofcardsapi.com/api/deck/${state.guesser.deckID}/draw/?count=2`
+    computerCards: function(state) {
+      return `https://deckofcardsapi.com/api/deck/${state.deckID.id}/draw/?count=2`
     },
+    playerCards: function(state) {
+      return `https://deckofcardsapi.com/api/deck/${state.deckID.id}/draw/?count=2`
+    },
+    drawOneCard: function(state){
+      return `https://deckofcardsapi.com/api/deck/${state.deckID.id}/draw/?count=1`
+    }
   },
 
   mutations: {
-    incrementPoints(state) {
-      state.guesser.points++;
-    },
-    incrementGuesses(state) {
-      state.guesser.guesses++;
+    changeGameState(state){
+      state.gameState.running ? false : state.gameState.running = true
+
+      //reset values 
+      state.gameState.gameOver = false;
+      state.gameState.gameWon = false;
+      state.gameState.gameDraw = false;
+      state.gameState.gameFinished = false;
+
+      state.computer.score = 0;
+      state.computer.cards = [];
+
+      state.player.score = 0;
+      state.player.cards = [];
     },
     setDeckId(state, deckID) {
-      state.guesser.deckID = deckID;
+      state.deckID.id = deckID;
     },
-    setNextGuess(state, color) {
-      state.guesser.nextGuess = color;
+    pushComputerPlayerCards(state, cards) {
+      state.computer.cards.push(cards[0])
+      state.computer.cards.push(cards[1])
+      console.log(state.computer.cards)
     },
-    pushNewCard(state, newCard) {
-      state.guesser.cards.unshift(newCard)
-    }
-
+    pushInitialPlayerCards(state, cards){
+      state.player.cards.push(cards[0])
+      state.player.cards.push(cards[1])
+    },
+    drawCard(state, newCard){
+      state.player.cards.unshift(newCard)
+    },
+    countScoreComputer(state, value){
+      state.computer.score = state.computer.score + value;
+      console.log('computer score ' + state.computer.score)
+    },
+    // gameOver(state){
+    //   state.computer.score = 0;
+    //   state.player.score = 0;
+    //   state.player.winner = false;
+    //   state.gameState.gameFinished = true;
+    // },
+    countScore(state, value){
+      state.player.score = state.player.score + value;
+      console.log('player score ' + state.player.score);
+    },
+    
   },
 
-
   actions: {
-    startGame({
-      commit
-    }, color) {
-      commit('startGame', color);
-    },
-    setNextGuess({
-      commit
-    }, color) {
-      commit('setNextGuess', color);
-    },
-    async getDeck({
-      commit
-    }) {
-      const {
-        deck_id
-      } = await fetch(API).then((r) => r.json());
-      commit('setDeckId', deck_id)
-    },
-    async drawCard({
+    async startGame({
       state,
       commit,
       getters
     }) {
-      const {
-        cards
-      } = await fetch(getters.cardAPI).then((r) => r.json());
+      commit('changeGameState', state);
 
-      commit('incrementGuesses');
+      const { deck_id } = await fetch(API).then((r) => r.json());
+      commit('setDeckId', deck_id);
 
-      if (validateGuess(cards[0], state.guesser.nextGuess)) {
-        commit('incrementPoints');
+      const {cards} = await fetch(getters.computerCards).then((r) => r.json());
+      const [computerCard1, computerCard2] = [
+        {
+          value: cards[0].value,
+          symbol: cardSymbol(cards[0]),
+          image: cards[0].image,
+        },
+        {
+          value: cards[1].value,
+          symbol: cardSymbol(cards[1]),
+          image: cards[1].image,
+        }
+      ]
+      const computersHand = [computerCard1, computerCard2]
+      commit('pushComputerPlayerCards', computersHand)
+
+      let computerScore = showValue(computerCard1) + showValue(computerCard2)
+      commit('countScoreComputer', computerScore); 
+
+      const playerCards = await fetch(getters.playerCards).then((r) => r.json());
+      const [playerCard1, playerCard2] = [
+        {
+          value: playerCards.cards[0].value,
+          symbol: cardSymbol(cards[0]),
+          image: playerCards.cards[0].image,
+        },
+        {
+          value: playerCards.cards[1].value,
+          symbol: cardSymbol(cards[1]),
+          image: playerCards.cards[1].image,
+        },
+      ]
+      const playersHand = [playerCard1, playerCard2]
+      commit('pushInitialPlayerCards', playersHand)
+
+      let initialScore = showValue(playerCard1) + showValue(playerCard2)
+      commit('countScore', initialScore);
+
+      if (state.player.score == 21){
+        state.gameState.gameWon = true;
+        state.gameState.gameFinished = true
+      } 
+    },
+    async hit({
+      state,
+      commit,
+      getters
+    }) {
+      const newCard = await fetch(getters.drawOneCard).then((r) => r.json());
+      
+      const card = {
+        value: newCard.cards[0].value,
+        symbol: cardSymbol(newCard.cards[0]),
+        image: newCard.cards[0].image,
       };
 
-      const cleanCard = {
-        value: cards[0].value,
-        symbol: cardSymbol(cards[0]),
-        image: cards[0].image,
-      }
+      showValue(card);
+      commit('drawCard', card);
+      commit('countScore', showValue(card)); 
 
-      commit('pushNewCard', cleanCard);
+      if (state.player.score > 21) {
+        state.gameState.gameOver = true;
+        state.gameState.gameFinished = true;
+      } else if (state.player.score == 21){
+        state.gameState.gameWon = true; 
+        state.gameSate.gameFinished = true;
+      } 
+    },
+    stand({
+      state,
+    }){
+      if(state.player.score > state.computer.score){
+        state.gameState.gameWon = true;
+        state.gameState.gameFinished = true; 
+      } else if (state.player.score < state.computer.score){
+        state.gameState.gameOver = true;
+        state.gameState.gameFinished = true; 
+      }
     },
   },
 });
-
-// const moduleB = createStore({
-//   // state: {
-//   //   gameState: {
-//   //     score: 0,
-//   //     deckID: undefined,
-//   //     cards: [],
-//   //     currentValue: undefined
-//   //     // nextGuess: undefined,
-//   //     // guesses: 0,
-//   //   }
-//   // }
-//   state() {
-//     return {
-//       gameState: {
-//         score: 0,
-//         deckID: undefined,
-//         cards: [],
-//         currentValue: undefined,
-//         // guesses: 0,
-//       }
-// });
-
-// console.log(store.state.a)
-// store.state.b
 
 const routes = [{
     path: '/',
@@ -175,10 +245,6 @@ const routes = [{
     path: '/guesser',
     component: GuesserPage
   },
-  {
-    path: '/blackjack',
-    component: BlackJackPage
-  }
 ]
 
 
