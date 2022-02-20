@@ -10,7 +10,7 @@ import './index.css'
 import HomePage from './pages/Home.vue'
 import PokedexPage from './pages/Pokedex.vue'
 import CalculatorPage from './pages/Calculator.vue'
-import GuesserPage from './pages/Guesser.vue'
+import BlackJackPage from './pages/BlackJack.vue'
 import App from './App.vue'
 import {
   createStore
@@ -119,21 +119,17 @@ const store = createStore({
     drawCard(state, newCard){
       state.player.cards.unshift(newCard)
     },
-    countScoreComputer(state, value){
-      state.computer.score = state.computer.score + value;
-      console.log('computer score ' + state.computer.score)
-    },
-    // gameOver(state){
-    //   state.computer.score = 0;
-    //   state.player.score = 0;
-    //   state.player.winner = false;
-    //   state.gameState.gameFinished = true;
-    // },
     countScore(state, value){
       state.player.score = state.player.score + value;
       console.log('player score ' + state.player.score);
     },
-    
+    drawCardComputer(state, newCard){
+      state.computer.cards.unshift(newCard)
+    },
+    countScoreComputer(state, value){
+      state.computer.score = state.computer.score + value;
+      console.log('computer score ' + state.computer.score)
+    },
   },
 
   actions: {
@@ -212,15 +208,15 @@ const store = createStore({
         state.gameState.gameFinished = true;
       } else if (state.player.score == 21){
         state.gameState.gameWon = true; 
-        state.gameSate.gameFinished = true;
+        state.gameState.gameFinished = true;
       } 
     },
-    stand({
+    async stand({
       state,
     }){
       if(state.player.score > state.computer.score){
-        state.gameState.gameWon = true;
-        state.gameState.gameFinished = true; 
+          state.gameState.gameWon = true;
+          state.gameState.gameFinished = true; 
       } else if (state.player.score < state.computer.score){
         state.gameState.gameOver = true;
         state.gameState.gameFinished = true; 
@@ -242,18 +238,15 @@ const routes = [{
     component: CalculatorPage
   },
   {
-    path: '/guesser',
-    component: GuesserPage
+    path: '/blackjack',
+    component: BlackJackPage
   },
 ]
-
-
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
 })
-
 
 const app = createApp(App);
 app.component()

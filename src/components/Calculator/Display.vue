@@ -13,7 +13,6 @@
 
 <style scoped>
 .glow {
-      
     box-shadow: 0px 0px 12px 4px rgba(251,146,60,0.7);
 }
 </style>
