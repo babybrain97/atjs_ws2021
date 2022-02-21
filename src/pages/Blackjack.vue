@@ -11,13 +11,13 @@
         </div>
       <div class="flex flex-wrap">
         <div v-if="gameState.gameFinished" class="mr-4 w-28">
-           <img :src="computer.cards[0].image" :alt="computer.cards[0].value" />
+           <img :src="computer.cards[0].image" :alt="computer.cards[0].value" :key="card" />
         </div>
         <div v-else class="mr-4 w-28 bg-amber-50 rounded-md">
            <p class="text-xl">?</p>
         </div>
         <div class="mr-4 w-28">
-           <img :src="computer.cards[1].image" :alt="computer.cards[1].value" />
+           <img :src="computer.cards[1].image" :alt="computer.cards[1].value" :key="card"/>
         </div>
       </div>
     </div>
@@ -70,7 +70,7 @@
       return {};
     },
     computed: {
-      ...mapState(['computer', 'player', 'gameState']),
+      ...mapState(['computer', 'player', 'gameState', 'deckID']),
     },
     methods: {
       ...mapMutations([]),
