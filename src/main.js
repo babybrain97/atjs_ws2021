@@ -10,7 +10,7 @@ import './index.css'
 import HomePage from './pages/Home.vue'
 import PokedexPage from './pages/Pokedex.vue'
 import CalculatorPage from './pages/Calculator.vue'
-import BlackJackPage from './pages/BlackJack.vue'
+import BlackJackPage from './pages/Blackjack.vue'
 import App from './App.vue'
 import {
   createStore
